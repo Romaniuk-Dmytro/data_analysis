@@ -73,13 +73,30 @@ b = 0.1
 
 sigmoid = lambda x: 1 / (1 + np.exp(-x))
 
-for i in range(10000):
-    z = np.dot(X_train, W) + b
 
-    y_pred = sigmoid(z)
-    l = square_loss(y_pred, y_train)
-    gradient_W = np.dot((y_pred - y_train).T, X_train) / X_train.shape[0]
+def fit(self, X, y, n_iterations=4):
+    # Add dummy ones for bias weights
+    X = np.insert(X, 0, 1, axis=1)
 
-    gradient_b = np.mean(y_pred - y_train)
-    W = W - step * gradient_W
-    b = b - step * gradient_b
+    n_samples, n_features = np.shape(X)
+
+    # Initial parameters between [-1/sqrt(N), 1/sqrt(N)]
+
+    # Tune parameters for n iterations
+    for i in range(n_iterations):
+        # Make a new prediction
+        y_pred = sigmoid(X.dot(self.param))
+        # Make a diagonal matrix of the sigmoid gradient column vector
+        diag_gradient = make_diagonal(sigmoid_gradient(X.dot(self.param)))
+        # Batch opt:
+        self.param = np.linalg.pinv(X.T.dot(diag_gradient).dot(X)).dot(X.T).dot(
+            diag_gradient.dot(X).dot(self.param) + y - y_pred)
+
+
+def predict(self, X):
+    # Add dummy ones for bias weights
+    X = np.insert(X, 0, 1, axis=1)
+    # Print a final prediction
+    dot = X.dot(self.param)
+    y_pred = np.round(sigmoid(dot)).astype(int)
+    return y_pred
